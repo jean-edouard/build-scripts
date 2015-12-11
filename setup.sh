@@ -3,6 +3,8 @@
 # This script sets up the host (just installs packages and adds a user),
 # and sets up LXC containers to build OpenXT
 
+apt-get install lxc
+
 # If one of the containers already exist, let's just bail
 if [ `lxc-ls | grep openxt-oe`     ] || \
    [ `lxc-ls | grep openxt-debian` ] || \
@@ -13,7 +15,8 @@ fi
 
 # Install packages on the host, all at once to be faster
 PKGS=""
-PKGS="$PKGS lxc virtualbox bridge-utils libvirt-bin curl jq git sudo" # VirtualBox, lxc and misc
+#PKGS="$PKGS virtualbox" # Un-comment to setup a Windows VM
+PKGS="$PKGS bridge-utils libvirt-bin curl jq git sudo" # lxc and misc
 PKGS="$PKGS debootstrap" # Debian container
 PKGS="$PKGS librpm3 librpmbuild3 librpmio3 librpmsign1 libsqlite0 python-rpm python-sqlite python-sqlitecachec python-support python-urlgrabber rpm rpm-common rpm2cpio yum debootstrap bridge-utils" # Centos container
 apt-get update
@@ -76,7 +79,7 @@ passwd -d root
 sed -i '/^start)$/a        mkdir -p /dev/shm/network/' /etc/init.d/networking
 PKGS=""
 PKGS="$PKGS openssh-server openssl"
-PKGS="$PKGS sed wget cvs subversion git-core coreutils unzip texi2html texinfo docbook-utils gawk python-pysqlite2 diffstat help2man make gcc build-essential g++ desktop-file-utils chrpath" # OE main deps
+PKGS="$PKGS sed wget cvs subversion git-core coreutils unzip texi2html texinfo docbook-utils gawk python-pysqlite2 diffstat help2man make gcc build-essential g++ desktop-file-utils chrpath cpio" # OE main deps
 PKGS="$PKGS ghc guilt iasl quilt bin86 bcc libsdl1.2-dev liburi-perl genisoimage policycoreutils unzip" # OpenXT-specific deps
 apt-get update
 apt-get -y install $PKGS </dev/null
@@ -98,6 +101,7 @@ adduser --disabled-password --gecos "" build
 mkdir -p /home/build/.ssh
 touch /home/build/.ssh/authorized_keys
 ssh-keygen -N "" -t dsa -C build@openxt-oe -f /home/build/.ssh/id_dsa
+ssh-keyscan -H 192.168.123.1 >> /home/build/.ssh/known_hosts
 chown -R build:build /home/build/.ssh
 
 # Create build certs
@@ -136,6 +140,7 @@ adduser --disabled-password --gecos "" build
 mkdir -p /home/build/.ssh
 touch /home/build/.ssh/authorized_keys
 ssh-keygen -N "" -t dsa -C build@openxt-debian -f /home/build/.ssh/id_dsa
+ssh-keyscan -H 192.168.123.1 >> /home/build/.ssh/known_hosts
 chown -R build:build /home/build/.ssh
 EOF
 # Allow the host to SSH to the container
@@ -161,6 +166,7 @@ adduser build
 mkdir -p /home/build/.ssh
 touch /home/build/.ssh/authorized_keys
 ssh-keygen -N "" -t dsa -C build@openxt-centos -f /home/build/.ssh/id_dsa
+ssh-keyscan -H 192.168.123.1 >> /home/build/.ssh/known_hosts
 chown -R build:build /home/build/.ssh
 EOF
 # Allow the host to SSH to the container

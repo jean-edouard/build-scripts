@@ -17,11 +17,10 @@ mkdir $BUILD_DIR
 sudo lxc-info -n openxt-oe | grep STOPPED >/dev/null && sudo lxc-start -d -n openxt-oe
 
 # Wait a few seconds and exit if the host doesn't respond
-ping -w 20 192.168.123.101 >/dev/null 2>&1
-if [ $? -ne 0 ]; then
+ping -c 1 192.168.123.101 >/dev/null 2>&1 || ping -w 30 192.168.123.101 >/dev/null 2>&1 || {
     echo "Could not connect to openxt-oe, exiting."
     exit 1
-fi
+}
 
 # Build
 ssh -i ssh-key/openxt -oStrictHostKeyChecking=no build@192.168.123.101 <<EOF
@@ -32,7 +31,7 @@ git clone openxt@192.168.123.1:git/openxt.git
 cd openxt
 cp example-config .config
 cat >>.config <<EOF2
-OPENXT_GIT_MIRROR="git://openxt@192.168.123.1/home/openxt/git"
+OPENXT_GIT_MIRROR="openxt@192.168.123.1/home/openxt/git"
 OPENXT_GIT_PROTOCOL="ssh"
 REPO_PROD_CACERT="/home/build/certs/prod-cacert.pem"
 REPO_DEV_CACERT="/home/build/certs/dev-cacert.pem"
