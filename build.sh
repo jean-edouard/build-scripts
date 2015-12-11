@@ -1,6 +1,13 @@
 #!/bin/bash -e
 
-# TODO: fetch the git mirror
+# Fetch git mirrors
+for i in git/*.git; do
+    echo -n "Fetching `basename $i`: "
+    cd $i
+    git fetch --all > /dev/null 2>&1
+    git log -1 --pretty='tformat:%H'
+    cd - > /dev/null
+done | tee /tmp/git_heads_$BUILDID
 
 # Create a build dir
 BUILD_DIR=`date +%y%m%d`
@@ -9,16 +16,15 @@ mkdir $BUILD_DIR
 # Start the OE container
 sudo lxc-info -n openxt-oe | grep STOPPED >/dev/null && sudo lxc-start -d -n openxt-oe
 
-# Wait 10 seconds and exit if the host doesn't respond
-ping -w 10 192.168.123.101 >/dev/null 2>&1
+# Wait a few seconds and exit if the host doesn't respond
+ping -w 20 192.168.123.101 >/dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "Could not connect to openxt-oe, exiting."
     exit 1
 fi
 
 # Build
-# TODO: fix first ssh
-ssh -i ssh-key/openxt build@192.168.123.101 <<EOF
+ssh -i ssh-key/openxt -oStrictHostKeyChecking=no build@192.168.123.101 <<EOF
 set -e
 mkdir $BUILD_DIR
 cd $BUILD_DIR
@@ -26,8 +32,7 @@ git clone openxt@192.168.123.1:git/openxt.git
 cd openxt
 cp example-config .config
 cat >>.config <<EOF2
-# TODO: those 2 values don't work, fix them
-OPENXT_GIT_MIRROR="openxt@192.168.123.1:git"
+OPENXT_GIT_MIRROR="git://openxt@192.168.123.1/home/openxt/git"
 OPENXT_GIT_PROTOCOL="ssh"
 REPO_PROD_CACERT="/home/build/certs/prod-cacert.pem"
 REPO_DEV_CACERT="/home/build/certs/dev-cacert.pem"

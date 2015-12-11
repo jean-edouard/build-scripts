@@ -155,7 +155,6 @@ EOF
 echo "Configuring the Centos container..."
 chroot /var/lib/lxc/openxt-centos/rootfs /bin/bash -e <<'EOF'
 passwd -d root
-# TODO: setup networking
 
 # Add a build user
 adduser build
