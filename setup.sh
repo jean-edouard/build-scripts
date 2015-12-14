@@ -62,10 +62,12 @@ EOF
 fi
 virsh net-start openxt >/dev/null 2>&1 || true
 
+LXC_PATH=`lxc-config lxc.lxcpath`
+
 # Create a container for the main part of the OpenXT build
 echo "Creating    the OpenEmbedded container..."
 lxc-create -n openxt-oe -t debian -- --arch i386 --release squeeze
-cat >> /var/lib/lxc/openxt-oe/config <<EOF
+cat >> $LXC_PATH/openxt-oe/config <<EOF
 lxc.network.type = veth
 lxc.network.flags = up
 lxc.network.link = oxtbr0
@@ -73,7 +75,7 @@ lxc.network.hwaddr = 00:FF:AA:42:42:01
 lxc.network.ipv4 = 0.0.0.0/24
 EOF
 echo "Configuring the OpenEmbedded container..."
-chroot /var/lib/lxc/openxt-oe/rootfs /bin/bash -e <<'EOF'
+chroot $LXC_PATH/openxt-oe/rootfs /bin/bash -e <<'EOF'
 # Remove root password
 passwd -d root
 # Fix networking
@@ -115,21 +117,21 @@ openssl req -new -x509 -key /home/build/certs/dev-cakey.pem -out /home/build/cer
 chown -R build:build /home/build/certs
 EOF
 # Allow the host to SSH to the container
-cat /home/openxt/ssh-key/openxt.pub >> /var/lib/lxc/openxt-oe/rootfs/home/build/.ssh/authorized_keys
+cat /home/openxt/ssh-key/openxt.pub >> $LXC_PATH/openxt-oe/rootfs/home/build/.ssh/authorized_keys
 # Allow the container to SSH to the host
-cat /var/lib/lxc/openxt-oe/rootfs/home/build/.ssh/id_dsa.pub >> /home/openxt/.ssh/authorized_keys
+cat $LXC_PATH/openxt-oe/rootfs/home/build/.ssh/id_dsa.pub >> /home/openxt/.ssh/authorized_keys
 
 # Create a container for the Debian tool packages for OpenXT
 echo "Creating    the Debian container..."
 lxc-create -n openxt-debian -t debian -- --arch amd64 --release jessie
-cat >> /var/lib/lxc/openxt-debian/config <<EOF
+cat >> $LXC_PATH/openxt-debian/config <<EOF
 lxc.network.type = veth
 lxc.network.flags = up
 lxc.network.link = oxtbr0
 lxc.network.hwaddr = 00:FF:AA:42:42:02
 EOF
 echo "Configuring the Debian container..."
-chroot /var/lib/lxc/openxt-debian/rootfs /bin/bash -e <<'EOF'
+chroot $LXC_PATH/openxt-debian/rootfs /bin/bash -e <<'EOF'
 passwd -d root
 PKGS=""
 PKGS="$PKGS openssh-server openssl git"
@@ -146,21 +148,21 @@ ssh-keyscan -H 192.168.123.1 >> /home/build/.ssh/known_hosts
 chown -R build:build /home/build/.ssh
 EOF
 # Allow the host to SSH to the container
-cat /home/openxt/ssh-key/openxt.pub >> /var/lib/lxc/openxt-debian/rootfs/home/build/.ssh/authorized_keys
+cat /home/openxt/ssh-key/openxt.pub >> $LXC_PATH/openxt-debian/rootfs/home/build/.ssh/authorized_keys
 # Allow the container to SSH to the host
-cat /var/lib/lxc/openxt-debian/rootfs/home/build/.ssh/id_dsa.pub >> /home/openxt/.ssh/authorized_keys
+cat $LXC_PATH/openxt-debian/rootfs/home/build/.ssh/id_dsa.pub >> /home/openxt/.ssh/authorized_keys
 
 # Create a container for the Centos tool packages for OpenXT
 echo "Creating    the Centos container..."
 lxc-create -n openxt-centos -t centos
-cat >> /var/lib/lxc/openxt-centos/config <<EOF
+cat >> $LXC_PATH/openxt-centos/config <<EOF
 lxc.network.type = veth
 lxc.network.flags = up
 lxc.network.link = oxtbr0
 lxc.network.hwaddr = 00:FF:AA:42:42:03
 EOF
 echo "Configuring the Centos container..."
-chroot /var/lib/lxc/openxt-centos/rootfs /bin/bash -e <<'EOF'
+chroot $LXC_PATH/openxt-centos/rootfs /bin/bash -e <<'EOF'
 passwd -d root
 
 # Add a build user
@@ -172,9 +174,9 @@ ssh-keyscan -H 192.168.123.1 >> /home/build/.ssh/known_hosts
 chown -R build:build /home/build/.ssh
 EOF
 # Allow the host to SSH to the container
-cat /home/openxt/ssh-key/openxt.pub >> /var/lib/lxc/openxt-centos/rootfs/home/build/.ssh/authorized_keys
+cat /home/openxt/ssh-key/openxt.pub >> $LXC_PATH/openxt-centos/rootfs/home/build/.ssh/authorized_keys
 # Allow the container to SSH to the host
-cat /var/lib/lxc/openxt-centos/rootfs/home/build/.ssh/id_dsa.pub >> /home/openxt/.ssh/authorized_keys
+cat $LXC_PATH/openxt-centos/rootfs/home/build/.ssh/id_dsa.pub >> /home/openxt/.ssh/authorized_keys
 
 # Setup a mirror of the git repositories, for the build to be consistant (and slightly faster)
 if [ ! -d /home/openxt/git ]; then
