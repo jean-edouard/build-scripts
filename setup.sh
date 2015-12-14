@@ -20,7 +20,8 @@ PKGS="$PKGS bridge-utils libvirt-bin curl jq git sudo" # lxc and misc
 PKGS="$PKGS debootstrap" # Debian container
 PKGS="$PKGS librpm3 librpmbuild3 librpmio3 librpmsign1 libsqlite0 python-rpm python-sqlite python-sqlitecachec python-support python-urlgrabber rpm rpm-common rpm2cpio yum debootstrap bridge-utils" # Centos container
 apt-get update
-apt-get install $PKGS
+# That's a lot of packages, a fetching failure can happen, try twice.
+apt-get install $PKGS || apt-get install $PKGS
 
 # Create an openxt user on the host and make it a sudoer
 if [ ! `cut -d ':' -f 1 /etc/passwd | grep '^openxt$'` ]; then
@@ -82,7 +83,8 @@ PKGS="$PKGS openssh-server openssl"
 PKGS="$PKGS sed wget cvs subversion git-core coreutils unzip texi2html texinfo docbook-utils gawk python-pysqlite2 diffstat help2man make gcc build-essential g++ desktop-file-utils chrpath cpio" # OE main deps
 PKGS="$PKGS ghc guilt iasl quilt bin86 bcc libsdl1.2-dev liburi-perl genisoimage policycoreutils unzip" # OpenXT-specific deps
 apt-get update
-apt-get -y install $PKGS </dev/null
+# That's a lot of packages, a fetching failure can happen, try twice.
+apt-get -y install $PKGS </dev/null || apt-get -y install $PKGS </dev/null
 
 # Use bash instead of dash for /bin/sh
 mkdir -p /tmp
