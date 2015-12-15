@@ -14,7 +14,11 @@ for i in /home/git/${USER}/*.git; do
 done | tee /tmp/git_heads_$BUILDID
 
 # Start the git service if needed
-kill -0 `cat /tmp/openxt_git.pid` || git daemon --base-path=/home/git --pid-file=/tmp/openxt_git.pid --detach --syslog --export-all
+kill -0 `cat /tmp/openxt_git.pid 2>/dev/null` 2>/dev/null || {
+    rm -f /tmp/openxt_git.pid
+    git daemon --base-path=/home/git --pid-file=/tmp/openxt_git.pid --detach --syslog --export-all
+    chmod 666 /tmp/openxt_git.pid
+}
 
 # Create a build dir
 BUILD_DIR=`date +%y%m%d`
@@ -34,7 +38,7 @@ ssh -i ssh-key/openxt -oStrictHostKeyChecking=no build@192.168.${IP_C}.101 <<EOF
 set -e
 mkdir $BUILD_DIR
 cd $BUILD_DIR
-git clone git://192.168.${IP_C}.1/openxt.git
+git clone git://192.168.${IP_C}.1/${USER}/openxt.git
 cd openxt
 cp example-config .config
 cat >>.config <<EOF2
