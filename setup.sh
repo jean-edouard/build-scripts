@@ -52,9 +52,9 @@ fi
 
 # Make up a network range 192.168.(150 + uid % 100).0
 # And a MAC range 00:FF:AA:42:(uid % 100):01
-UID=`id -u ${USER}`
-IP_C=$(( 150 + ${UID} % 100 ))
-MAC_E=$(( ${UID} % 100 ))
+USER_ID=`id -u ${USER}`
+IP_C=$(( 150 + ${USER_ID} % 100 ))
+MAC_E=$(( ${USER_ID} % 100 ))
 
 # Setup LXC networking on the host, to give known IPs to the containers
 if [ ! -f /etc/libvirt/qemu/networks/${USER}.xml ]; then

@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
 USER=`whoami`
-UID=`id -u ${USER}`
-IP_C=$(( 150 + ${UID} % 100 ))
+USER_ID=`id -u ${USER}`
+IP_C=$(( 150 + ${USER_ID} % 100 ))
 
 # Fetch git mirrors
 for i in /home/git/${USER}/*.git; do
