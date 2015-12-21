@@ -1,7 +1,11 @@
 #!/bin/bash -e
 
-DUDE="openxt"
+# This script sets up the host (just installs packages and adds a user),
+# and sets up LXC containers to build OpenXT
 
+DEBIAN_MIRROR=http://httpredir.debian.org/debian
+
+DUDE="openxt"
 if [ $# -ne 0 ]; then
     if [ $# -ne 2 ] || [ $1 != "-u"]; then
 	echo "Usage: ./setup.sh [-u user]"
@@ -10,21 +14,8 @@ if [ $# -ne 0 ]; then
     DUDE=$2
 fi
 
-# This script sets up the host (just installs packages and adds a user),
-# and sets up LXC containers to build OpenXT
-
-apt-get install lxc
-
-# If one of the containers already exist, let's just bail
-if [ `lxc-ls | grep ${DUDE}-oe`     ] || \
-   [ `lxc-ls | grep ${DUDE}-debian` ] || \
-   [ `lxc-ls | grep ${DUDE}-centos` ]; then
-    echo "Some containers already exist, can't continue."
-    exit 1
-fi
-
 # Install packages on the host, all at once to be faster
-PKGS=""
+PKGS="lxc"
 #PKGS="$PKGS virtualbox" # Un-comment to setup a Windows VM
 PKGS="$PKGS bridge-utils libvirt-bin curl jq git sudo" # lxc and misc
 PKGS="$PKGS debootstrap" # Debian container
@@ -80,119 +71,46 @@ virsh net-start ${DUDE} >/dev/null 2>&1 || true
 
 LXC_PATH=`lxc-config lxc.lxcpath`
 
-# Create a container for the main part of the OpenXT build
-echo "Creating    the OpenEmbedded container..."
-lxc-create -n ${DUDE}-oe -t debian -- --arch i386 --release squeeze
-cat >> ${LXC_PATH}/${DUDE}-oe/config <<EOF
+setup_container() {
+    NUMBER=$1           # 01
+    NAME=$2             # oe
+    TEMPLATE=$3         # debian
+    TEMPLATE_OPTIONS=$4 # --arch i386 --release squeeze
+    MIRROR=$5           # http://httpredir.debian.org/debian
+
+    # Bail if the container already exists
+    if [ `lxc-ls | grep ${DUDE}-${NAME}` ]; then
+	echo "Container ${DUDE}-${NAME} already exists, skipping."
+	return
+    fi
+
+    # Create the container
+    echo "Creating the ${NAME} container..."
+    lxc-create -n ${DUDE}-${NAME} -t $TEMPLATE -- $TEMPLATE_OPTIONS
+    cat >> ${LXC_PATH}/${DUDE}-${NAME}/config <<EOF
 lxc.network.type = veth
 lxc.network.flags = up
 lxc.network.link = ${DUDE}br0
-lxc.network.hwaddr = 00:FF:AA:42:${MAC_E}:01
+lxc.network.hwaddr = 00:FF:AA:42:${MAC_E}:${NUMBER}
 lxc.network.ipv4 = 0.0.0.0/24
 EOF
-echo "Configuring the OpenEmbedded container..."
-chroot ${LXC_PATH}/${DUDE}-oe/rootfs /bin/bash -e <<'EOF'
-# Remove root password
-passwd -d root
-# Fix networking
-sed -i '/^start)$/a        mkdir -p /dev/shm/network/' /etc/init.d/networking
-PKGS=""
-PKGS="$PKGS openssh-server openssl"
-PKGS="$PKGS sed wget cvs subversion git-core coreutils unzip texi2html texinfo docbook-utils gawk python-pysqlite2 diffstat help2man make gcc build-essential g++ desktop-file-utils chrpath cpio" # OE main deps
-PKGS="$PKGS ghc guilt iasl quilt bin86 bcc libsdl1.2-dev liburi-perl genisoimage policycoreutils unzip" # OpenXT-specific deps
-apt-get update
-# That's a lot of packages, a fetching failure can happen, try twice.
-apt-get -y install $PKGS </dev/null || apt-get -y install $PKGS </dev/null
+    echo "Configuring the ${NAME} container..."
+    cat ${NAME}/setup.sh | sed "s/%MIRROR%/${MIRROR}/" | chroot ${LXC_PATH}/${DUDE}-${NAME}/rootfs /bin/bash -e
+    # Allow the host to SSH to the container
+    cat /home/${DUDE}/ssh-key/openxt.pub >> ${LXC_PATH}/${DUDE}-${NAME}/rootfs/home/build/.ssh/authorized_keys
+    # Allow the container to SSH to the host
+    cat ${LXC_PATH}/${DUDE}-${NAME}/rootfs/home/build/.ssh/id_dsa.pub >> /home/${DUDE}/.ssh/authorized_keys
+    ssh-keyscan -H 192.168.${IP_C}.1 >> ${LXC_PATH}/${DUDE}-${NAME}/rootfs/home/build/.ssh/known_hosts
+}
 
-# Use bash instead of dash for /bin/sh
-mkdir -p /tmp
-echo "dash dash/sh boolean false" > /tmp/preseed.txt
-debconf-set-selections /tmp/preseed.txt
-dpkg-reconfigure -f noninteractive dash
-
-# Hack: Make uname report a 32bits kernel
-mv /bin/uname /bin/uname.real
-echo '#!/bin/bash' > /bin/uname
-echo '/bin/uname.real $@ | sed "s/amd64/i686/g" | sed "s/x86_64/i686/g"' >> /bin/uname
-chmod +x /bin/uname
-
-# Add a build user
-adduser --disabled-password --gecos "" build
-mkdir -p /home/build/.ssh
-touch /home/build/.ssh/authorized_keys
-ssh-keygen -N "" -t dsa -C build@openxt-oe -f /home/build/.ssh/id_dsa
-chown -R build:build /home/build/.ssh
-
-# Create build certs
-mkdir /home/build/certs
-openssl genrsa -out /home/build/certs/prod-cakey.pem 2048
-openssl genrsa -out /home/build/certs/dev-cakey.pem 2048
-openssl req -new -x509 -key /home/build/certs/prod-cakey.pem -out /home/build/certs/prod-cacert.pem -days 1095 -subj "/C=US/ST=Massachusetts/L=Boston/O=OpenXT/OU=OpenXT/CN=openxt.org"
-openssl req -new -x509 -key /home/build/certs/dev-cakey.pem -out /home/build/certs/dev-cacert.pem -days 1095 -subj "/C=US/ST=Massachusetts/L=Boston/O=OpenXT/OU=OpenXT/CN=openxt.org"
-chown -R build:build /home/build/certs
-EOF
-# Allow the host to SSH to the container
-cat /home/${DUDE}/ssh-key/openxt.pub >> ${LXC_PATH}/${DUDE}-oe/rootfs/home/build/.ssh/authorized_keys
-# Allow the container to SSH to the host
-cat ${LXC_PATH}/${DUDE}-oe/rootfs/home/build/.ssh/id_dsa.pub >> /home/${DUDE}/.ssh/authorized_keys
-ssh-keyscan -H 192.168.${IP_C}.1 >> ${LXC_PATH}/${DUDE}-oe/rootfs/home/build/.ssh/known_hosts
+# Create a container for the main part of the OpenXT build
+setup_container "01" "oe"     "debian" "${DEBIAN_MIRROR}" "--arch i386  --release squeeze"
 
 # Create a container for the Debian tool packages for OpenXT
-echo "Creating    the Debian container..."
-lxc-create -n ${DUDE}-debian -t debian -- --arch amd64 --release jessie
-cat >> ${LXC_PATH}/${DUDE}-debian/config <<EOF
-lxc.network.type = veth
-lxc.network.flags = up
-lxc.network.link = ${DUDE}br0
-lxc.network.hwaddr = 00:FF:AA:42:${MAC_E}:02
-EOF
-echo "Configuring the Debian container..."
-chroot ${LXC_PATH}/${DUDE}-debian/rootfs /bin/bash -e <<'EOF'
-passwd -d root
-PKGS=""
-PKGS="$PKGS openssh-server openssl git"
-PKGS="$PKGS schroot sbuild reprepro" # Debian package building deps
-apt-get update
-apt-get -y install $PKGS </dev/null
-
-# Add a build user
-adduser --disabled-password --gecos "" build
-mkdir -p /home/build/.ssh
-touch /home/build/.ssh/authorized_keys
-ssh-keygen -N "" -t dsa -C build@openxt-debian -f /home/build/.ssh/id_dsa
-chown -R build:build /home/build/.ssh
-EOF
-# Allow the host to SSH to the container
-cat /home/${DUDE}/ssh-key/openxt.pub >> ${LXC_PATH}/${DUDE}-debian/rootfs/home/build/.ssh/authorized_keys
-# Allow the container to SSH to the host
-cat ${LXC_PATH}/${DUDE}-debian/rootfs/home/build/.ssh/id_dsa.pub >> /home/${DUDE}/.ssh/authorized_keys
-ssh-keyscan -H 192.168.${IP_C}.1 >> ${LXC_PATH}/${DUDE}-debian/rootfs/home/build/.ssh/known_hosts
+setup_container "02" "debian" "debian" "${DEBIAN_MIRROR}" "--arch amd64 --release jessie"
 
 # Create a container for the Centos tool packages for OpenXT
-echo "Creating    the Centos container..."
-lxc-create -n ${DUDE}-centos -t centos
-cat >> ${LXC_PATH}/${DUDE}-centos/config <<EOF
-lxc.network.type = veth
-lxc.network.flags = up
-lxc.network.link = ${DUDE}br0
-lxc.network.hwaddr = 00:FF:AA:42:${MAC_E}:03
-EOF
-echo "Configuring the Centos container..."
-chroot ${LXC_PATH}/${DUDE}-centos/rootfs /bin/bash -e <<'EOF'
-passwd -d root
-
-# Add a build user
-adduser build
-mkdir -p /home/build/.ssh
-touch /home/build/.ssh/authorized_keys
-ssh-keygen -N "" -t dsa -C build@openxt-centos -f /home/build/.ssh/id_dsa
-chown -R build:build /home/build/.ssh
-EOF
-# Allow the host to SSH to the container
-cat /home/${DUDE}/ssh-key/openxt.pub >> ${LXC_PATH}/${DUDE}-centos/rootfs/home/build/.ssh/authorized_keys
-# Allow the container to SSH to the host
-cat ${LXC_PATH}/${DUDE}-centos/rootfs/home/build/.ssh/id_dsa.pub >> /home/${DUDE}/.ssh/authorized_keys
-ssh-keyscan -H 192.168.${IP_C}.1 >> ${LXC_PATH}/${DUDE}-centos/rootfs/home/build/.ssh/known_hosts
+setup_container "03" "centos" "centos" "" ""
 
 # Setup a mirror of the git repositories, for the build to be consistant (and slightly faster)
 if [ ! -d /home/git ]; then
