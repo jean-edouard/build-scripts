@@ -19,3 +19,6 @@ sudo cp -r pv-linux-drivers/xenmou/ /usr/src/xenmou-1.0
 sudo dkms add -m xenmou -v 1.0
 sudo dkms build -m xenmou -v 1.0 -k 2.6.32-573.12.1.el6.x86_64 --kernelsourcedir=/usr/src/kernels/2.6.32-573.12.1.el6.x86_64
 sudo dkms mkrpm -m xenmou -v 1.0 -k 2.6.32-573.12.1.el6.x86_64
+
+# The script may run in an "ssh -t -t" environment, that won't exit on its own
+exit

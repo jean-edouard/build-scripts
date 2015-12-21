@@ -17,3 +17,6 @@ mkdir -p jessie
 cd jessie
 sbuild --dist=jessie --arch-all ../pv-linux-drivers/xenmou
 cd - >/dev/null
+
+# The script may run in an "ssh -t -t" environment, that won't exit on its own
+exit

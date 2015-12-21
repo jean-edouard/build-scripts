@@ -3,6 +3,7 @@
 # This script sets up the host (just installs packages and adds a user),
 # and sets up LXC containers to build OpenXT
 
+# The FQDN path for the Debian mirror (some chroots don't inherit the resolv.conf search domain)
 DEBIAN_MIRROR=http://httpredir.debian.org/debian
 
 DUDE="openxt"
@@ -95,7 +96,9 @@ lxc.network.hwaddr = 00:FF:AA:42:${MAC_E}:${NUMBER}
 lxc.network.ipv4 = 0.0.0.0/24
 EOF
     echo "Configuring the ${NAME} container..."
+    #mount -o bind /dev ${LXC_PATH}/${DUDE}-${NAME}/rootfs/dev
     cat ${NAME}/setup.sh | sed "s|\%MIRROR\%|${MIRROR}|" | chroot ${LXC_PATH}/${DUDE}-${NAME}/rootfs /bin/bash -e
+    #umount ${LXC_PATH}/${DUDE}-${NAME}/rootfs/dev
     # Allow the host to SSH to the container
     cat /home/${DUDE}/ssh-key/openxt.pub >> ${LXC_PATH}/${DUDE}-${NAME}/rootfs/home/build/.ssh/authorized_keys
     # Allow the container to SSH to the host

@@ -20,3 +20,6 @@ REPO_DEV_SIGNING_CERT="/home/build/certs/dev-cacert.pem"
 REPO_DEV_SIGNING_KEY="/home/build/certs/dev-cakey.pem"
 EOF
 ./do_build.sh | tee build.log
+
+# The script may run in an "ssh -t -t" environment, that won't exit on its own
+exit
