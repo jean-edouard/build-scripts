@@ -7,7 +7,7 @@ Scripts to setup and run OpenXT builds in containers
 - Login as root
 - Install git
 - Clone this repository and `cd` to it
+- Optional: edit setup.sh to change the Debian mirror
 - Run `./setup.sh -u user` to setup a build environment for "user"
 - Logout and login as user
-- Optional: edit build.sh to change the Debian mirror
 - Run ./build.sh
