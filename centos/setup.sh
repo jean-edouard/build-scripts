@@ -4,7 +4,7 @@
 passwd -d root
 
 # Install required packages
-yum install rpm-build which sudo git which
+yum -y install rpm-build which sudo git which wget gcc kernel-devel tar
 wget http://pkgs.repoforge.org/dkms/dkms-2.1.1.2-1.el6.rf.noarch.rpm
 rpm -ivh dkms-2.1.1.2-1.el6.rf.noarch.rpm
 

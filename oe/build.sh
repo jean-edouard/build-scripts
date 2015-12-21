@@ -1,6 +1,11 @@
 #!/bin/sh
 
 set -e
+
+DUDE=%DUDE%
+BUILD_DIR=%BUILD_DIR%
+IP_C=%IP_C%
+
 mkdir $BUILD_DIR
 cd $BUILD_DIR
 git clone git://192.168.${IP_C}.1/${DUDE}/openxt.git

@@ -1,5 +1,11 @@
 #!/bin/sh
 
+set -e
+
+DUDE=%DUDE%
+BUILD_DIR=%BUILD_DIR%
+IP_C=%IP_C%
+
 # Remove xenmou
 sudo dkms remove -m xenmou -v 1.0 --all || true
 sudo rm -rf /usr/src/xenmou-1.0

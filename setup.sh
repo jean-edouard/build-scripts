@@ -7,7 +7,7 @@ DEBIAN_MIRROR=http://httpredir.debian.org/debian
 
 DUDE="openxt"
 if [ $# -ne 0 ]; then
-    if [ $# -ne 2 ] || [ $1 != "-u"]; then
+    if [ $# -ne 2 ] || [ $1 != "-u" ]; then
 	echo "Usage: ./setup.sh [-u user]"
 	exit 1
     fi
@@ -75,8 +75,8 @@ setup_container() {
     NUMBER=$1           # 01
     NAME=$2             # oe
     TEMPLATE=$3         # debian
-    TEMPLATE_OPTIONS=$4 # --arch i386 --release squeeze
-    MIRROR=$5           # http://httpredir.debian.org/debian
+    MIRROR=$4           # http://httpredir.debian.org/debian
+    TEMPLATE_OPTIONS=$5 # --arch i386 --release squeeze
 
     # Bail if the container already exists
     if [ `lxc-ls | grep ${DUDE}-${NAME}` ]; then
@@ -86,7 +86,7 @@ setup_container() {
 
     # Create the container
     echo "Creating the ${NAME} container..."
-    lxc-create -n ${DUDE}-${NAME} -t $TEMPLATE -- $TEMPLATE_OPTIONS
+    MIRROR=${MIRROR} lxc-create -n ${DUDE}-${NAME} -t $TEMPLATE -- $TEMPLATE_OPTIONS
     cat >> ${LXC_PATH}/${DUDE}-${NAME}/config <<EOF
 lxc.network.type = veth
 lxc.network.flags = up
@@ -95,12 +95,20 @@ lxc.network.hwaddr = 00:FF:AA:42:${MAC_E}:${NUMBER}
 lxc.network.ipv4 = 0.0.0.0/24
 EOF
     echo "Configuring the ${NAME} container..."
-    cat ${NAME}/setup.sh | sed "s/%MIRROR%/${MIRROR}/" | chroot ${LXC_PATH}/${DUDE}-${NAME}/rootfs /bin/bash -e
+    cat ${NAME}/setup.sh | sed "s|\%MIRROR\%|${MIRROR}|" | chroot ${LXC_PATH}/${DUDE}-${NAME}/rootfs /bin/bash -e
     # Allow the host to SSH to the container
     cat /home/${DUDE}/ssh-key/openxt.pub >> ${LXC_PATH}/${DUDE}-${NAME}/rootfs/home/build/.ssh/authorized_keys
     # Allow the container to SSH to the host
     cat ${LXC_PATH}/${DUDE}-${NAME}/rootfs/home/build/.ssh/id_dsa.pub >> /home/${DUDE}/.ssh/authorized_keys
     ssh-keyscan -H 192.168.${IP_C}.1 >> ${LXC_PATH}/${DUDE}-${NAME}/rootfs/home/build/.ssh/known_hosts
+
+    # Copy the build script for that container to the user home directory
+    mkdir /home/${DUDE}/${NAME}
+    cp ${NAME}/build.sh /home/${DUDE}/${NAME}/
+    chown -R ${DUDE}:${DUDE} /home/${DUDE}/${NAME}
+
+    # Copy resolv.conf over for networking, shouldn't be needed
+    #cp /etc/resolv.conf ${LXC_PATH}/${DUDE}-${NAME}/rootfs/etc/resolv.conf
 }
 
 # Create a container for the main part of the OpenXT build
