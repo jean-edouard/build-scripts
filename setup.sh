@@ -33,6 +33,17 @@ if [ ! `cut -d ":" -f 1 /etc/passwd | grep "^${DUDE}$"` ]; then
     touch /home/${DUDE}/.ssh/authorized_keys
     chown -R ${DUDE}:${DUDE} /home/${DUDE}/.ssh
     echo "${DUDE}  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+else
+    if [ ! -f /home/${DUDE}/.ssh/authorized_keys ]; then
+	echo "${DUDE} doesn't have an SSH authorized_keys file, creating one."
+	mkdir -p /home/${DUDE}/.ssh
+	touch /home/${DUDE}/.ssh/authorized_keys
+	chown -R ${DUDE}:${DUDE} /home/${DUDE}/.ssh
+    fi
+    grep ${DUDE} /etc/sudoers >/dev/null 2>&1 || {
+	echo "${DUDE} is not a sudoer, adding him."
+	echo "${DUDE}  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+    }
 fi
 
 # Create an SSH key for the user, to communicate with the containers
