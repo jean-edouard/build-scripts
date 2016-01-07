@@ -21,5 +21,8 @@ REPO_DEV_SIGNING_KEY="/home/build/certs/dev-cakey.pem"
 EOF
 ./do_build.sh | tee build.log
 
+# Copy the build output
+scp -r build-output/* ${DUDE}@192.168.${IP_C}.1:${BUILD_DIR}/
+
 # The script may run in an "ssh -t -t" environment, that won't exit on its own
 exit
