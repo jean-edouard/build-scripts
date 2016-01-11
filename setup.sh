@@ -117,7 +117,7 @@ EOF
     ssh-keyscan -H 192.168.${IP_C}.1 >> ${LXC_PATH}/${DUDE}-${NAME}/rootfs/home/build/.ssh/known_hosts
 
     # Copy the build script for that container to the user home directory
-    mkdir /home/${DUDE}/${NAME}
+    mkdir -p /home/${DUDE}/${NAME}
     cp ${NAME}/build.sh /home/${DUDE}/${NAME}/
     chown -R ${DUDE}:${DUDE} /home/${DUDE}/${NAME}
 
