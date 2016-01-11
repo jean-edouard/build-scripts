@@ -25,4 +25,5 @@ EOF
 scp -r build-output/* ${DUDE}@192.168.${IP_C}.1:${BUILD_DIR}/
 
 # The script may run in an "ssh -t -t" environment, that won't exit on its own
+set +e
 exit

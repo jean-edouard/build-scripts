@@ -21,4 +21,5 @@ sudo dkms build -m xenmou -v 1.0 -k 2.6.32-573.12.1.el6.x86_64 --kernelsourcedir
 sudo dkms mkrpm -m xenmou -v 1.0 -k 2.6.32-573.12.1.el6.x86_64
 
 # The script may run in an "ssh -t -t" environment, that won't exit on its own
+set +e
 exit
