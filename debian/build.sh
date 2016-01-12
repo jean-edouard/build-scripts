@@ -55,7 +55,7 @@ ls ../jessie/*.deb >/dev/null 2>&1 && reprepro includedeb jessie ../jessie/*.deb
 cd - >/dev/null
 
 # Copy the resulting repository
-scp -r repo ${DUDE}@192.168.${IP_C}.1:${BUILD_DIR}/
+scp -r repo ${DUDE}@192.168.${IP_C}.1:${BUILD_DIR}/debian
 
 # The script may run in an "ssh -t -t" environment, that won't exit on its own
 set +e

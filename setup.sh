@@ -132,7 +132,7 @@ setup_container "01" "oe"     "debian" "${DEBIAN_MIRROR}" "--arch i386  --releas
 setup_container "02" "debian" "debian" "${DEBIAN_MIRROR}" "--arch amd64 --release jessie"
 
 # Create a container for the Centos tool packages for OpenXT
-setup_container "03" "centos" "centos" "" ""
+setup_container "03" "centos" "centos" "" "--arch x86_64 --release 7"
 
 # Setup a mirror of the git repositories, for the build to be consistant (and slightly faster)
 if [ ! -d /home/git ]; then
