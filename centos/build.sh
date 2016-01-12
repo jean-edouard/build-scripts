@@ -9,20 +9,27 @@ IP_C=%IP_C%
 mkdir -p $BUILD_DIR/repo/RPMS
 cd $BUILD_DIR
 
-# Remove xenmou
-sudo dkms remove -m xenmou -v 1.0 --all || true
-sudo rm -rf /usr/src/xenmou-1.0
+KERNEL_VERSION=3.10.0-327.4.4.el7.x86_64
+
 rm -rf pv-linux-drivers
-
-# Fetch xenmou
 git clone -b sbuild https://github.com/jean-edouard/pv-linux-drivers.git
-sudo cp -r pv-linux-drivers/xenmou/ /usr/src/xenmou-1.0
 
-# Build xenmou
-sudo dkms add -m xenmou -v 1.0
-sudo dkms build -m xenmou -v 1.0 -k 2.6.32-573.12.1.el6.x86_64 --kernelsourcedir=/usr/src/kernels/2.6.32-573.12.1.el6.x86_64
-sudo dkms mkrpm -m xenmou -v 1.0 -k 2.6.32-573.12.1.el6.x86_64
-cp /var/lib/dkms/openxt-xenmou/1.0/rpm/* repo/RPMS
+for i in `ls pv-linux-drivers/openxt-*`; do
+    tool=`basename $i`
+
+    # Remove package
+    sudo dkms remove -m ${tool} -v 1.0 --all || true
+    sudo rm -rf /usr/src/${tool}-1.0
+
+    # Fetch xenmou
+    sudo cp -r pv-linux-drivers/${tool} /usr/src/${tool}-1.0
+
+    # Build xenmou
+    sudo dkms add -m ${tool} -v 1.0
+    sudo dkms build -m ${tool} -v 1.0 -k ${KERNEL_VERSION} --kernelsourcedir=/usr/src/kernels/${KERNEL_VERSION}
+    sudo dkms mkrpm -m xenmou -v 1.0 -k ${KERNEL_VERSION}
+    cp /var/lib/dkms/${tool}/1.0/rpm/* repo/RPMS
+done
 
 # Create the repo
 createrepo repo

@@ -4,9 +4,8 @@
 passwd -d root
 
 # Install required packages
-yum -y install rpm-build createrepo which sudo git which wget gcc kernel-devel tar
-wget http://pkgs.repoforge.org/dkms/dkms-2.1.1.2-1.el6.rf.noarch.rpm
-rpm -ivh dkms-2.1.1.2-1.el6.rf.noarch.rpm
+rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+yum -y install rpm-build createrepo which sudo git which wget gcc kernel-devel tar dkms
 
 # Add a build user
 adduser build
