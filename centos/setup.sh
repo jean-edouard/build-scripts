@@ -4,6 +4,9 @@
 passwd -d root
 
 # Install required packages
+# The following line must be done first,
+#  it will make the next yum command use the correct packages
+yum -y install centos-release-xen
 rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum -y install rpm-build createrepo which sudo git which wget gcc make kernel-devel tar dkms
 

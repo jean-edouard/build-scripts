@@ -9,7 +9,7 @@ IP_C=%IP_C%
 mkdir -p $BUILD_DIR/repo/RPMS
 cd $BUILD_DIR
 
-KERNEL_VERSION=3.10.0-327.4.4.el7.x86_64
+KERNEL_VERSION=`ls /lib/modules | tail -1`
 
 rm -rf pv-linux-drivers
 git clone -b sbuild2 https://github.com/jean-edouard/pv-linux-drivers.git
