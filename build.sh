@@ -11,10 +11,10 @@ for i in /home/git/${DUDE}/*.git; do
     git fetch --all > /dev/null 2>&1
     git log -1 --pretty='tformat:%H'
     cd - > /dev/null
-done | tee /tmp/git_heads_$BUILDID
+done | tee /tmp/git_heads_$DUDE
 
 # Start the git service if needed
-kill -0 `cat /tmp/openxt_git.pid 2>/dev/null` 2>/dev/null || {
+ps -p `cat /tmp/openxt_git.pid 2>/dev/null` >/dev/null 2>&1 || {
     rm -f /tmp/openxt_git.pid
     git daemon --base-path=/home/git --pid-file=/tmp/openxt_git.pid --detach --syslog --export-all
     chmod 666 /tmp/openxt_git.pid
@@ -22,6 +22,7 @@ kill -0 `cat /tmp/openxt_git.pid 2>/dev/null` 2>/dev/null || {
 
 # Create a build dir
 BUILD_DIR=`date +%y%m%d`
+[ -d $BUILD_DIR ] && rm -ri $BUILD_DIR
 mkdir $BUILD_DIR
 
 build_container() {
