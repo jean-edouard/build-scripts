@@ -18,7 +18,7 @@ for i in `ls -d pv-linux-drivers/openxt-*`; do
     tool=`basename $i`
 
     # Remove package
-    sudo dkms remove -m ${tool} -v 1.0 --all || true
+    sudo dkms remove -m ${tool} -v 1.0 --all 2>/dev/null || true
     sudo rm -rf /usr/src/${tool}-1.0
 
     # Fetch package
@@ -27,7 +27,7 @@ for i in `ls -d pv-linux-drivers/openxt-*`; do
     # Build package
     sudo dkms add -m ${tool} -v 1.0
     sudo dkms build -m ${tool} -v 1.0 -k ${KERNEL_VERSION} --kernelsourcedir=/usr/src/kernels/${KERNEL_VERSION}
-    sudo dkms mkrpm -m xenmou -v 1.0 -k ${KERNEL_VERSION}
+    sudo dkms mkrpm -m ${tool} -v 1.0 -k ${KERNEL_VERSION}
     cp /var/lib/dkms/${tool}/1.0/rpm/* repo/RPMS
 done
 

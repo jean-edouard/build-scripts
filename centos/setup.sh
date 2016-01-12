@@ -11,7 +11,7 @@ rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum -y install rpm-build createrepo which sudo git which wget gcc make kernel-devel tar dkms
 
 # Setup symlinks to make dkms happy
-for kernelpath in `ls /usr/src/*`; do
+for kernelpath in `ls /usr/src/kernels/*`; do
     kernel=`basename $kernelpath`
     mkdir -p /lib/modules/${kernel}
     [ -e /lib/modules/${kernel}/build ] || ln -s ${kernelpath} /lib/modules/${kernel}/build
