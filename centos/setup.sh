@@ -11,14 +11,6 @@ yum -y groupinstall "Development tools"
 rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum -y install rpm-build createrepo which sudo git which wget gcc make kernel-devel tar dkms libaio bc iproute2 net-tools
 
-/etc/init.d/oracle-xe configure <<EOF
-
-
-xenroot
-xenroot
-
-EOF
-
 # And Oracle
 while [ ! -f /tmp/oracle-xe-11.2.0-1.0.x86_64.rpm.zip ]; do
     echo "Please scp oracle-xe-11.2.0-1.0.x86_64.rpm.zip to my /tmp"
@@ -26,7 +18,13 @@ while [ ! -f /tmp/oracle-xe-11.2.0-1.0.x86_64.rpm.zip ]; do
 done
 unzip /tmp/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
 rpm -ivh Disk1/oracle-xe-11.2.0-1.0.x86_64.rpm
-/etc/init.d/oracle-xe configure
+/etc/init.d/oracle-xe configure <<EOF
+
+
+xenroot
+xenroot
+
+EOF
 
 # Setup symlinks to make dkms happy
 for kernelpath in `ls /usr/src/kernels/*`; do
