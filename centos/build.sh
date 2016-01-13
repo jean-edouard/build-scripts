@@ -10,7 +10,7 @@ IP_C=%IP_C%
 if [ ! -e /root/oracled ]; then
     while [ ! -f /tmp/oracle-xe-11.2.0-1.0.x86_64.rpm.zip ]; do
         echo "Please scp oracle-xe-11.2.0-1.0.x86_64.rpm.zip to my /tmp."
-        echo "  example: scp -i ssh-key oracle-xe-11.2.0-1.0.x86_64.rpm.zip build@192.168.${IP_C}.103:/tmp"
+        echo "  example: scp -i ssh-key/openxt oracle-xe-11.2.0-1.0.x86_64.rpm.zip build@192.168.${IP_C}.103:/tmp"
         sleep 60
     done
     unzip /root/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
