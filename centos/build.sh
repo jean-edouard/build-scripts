@@ -9,9 +9,9 @@ IP_C=%IP_C%
 # On first build, setup Oracle
 if [ ! -e /root/oracled ]; then
     while [ ! -f /tmp/oracle-xe-11.2.0-1.0.x86_64.rpm.zip ]; do
-	echo "Please scp oracle-xe-11.2.0-1.0.x86_64.rpm.zip to my /tmp."
-	echo "  example: scp -i ssh-key oracle-xe-11.2.0-1.0.x86_64.rpm.zip build@192.168.${IP_C}.103:/tmp"
-	sleep 60
+        echo "Please scp oracle-xe-11.2.0-1.0.x86_64.rpm.zip to my /tmp."
+        echo "  example: scp -i ssh-key oracle-xe-11.2.0-1.0.x86_64.rpm.zip build@192.168.${IP_C}.103:/tmp"
+        sleep 60
     done
     unzip /root/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
     rpm -ivh Disk1/oracle-xe-11.2.0-1.0.x86_64.rpm
