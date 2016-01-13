@@ -14,11 +14,12 @@ KERNEL_VERSION=`ls /lib/modules | tail -1`
 rm -rf pv-linux-drivers
 git clone -b sbuild2 https://github.com/jean-edouard/pv-linux-drivers.git
 
+# Build the tools
 for i in `ls -d pv-linux-drivers/openxt-*`; do
     tool=`basename $i`
 
     # Remove package
-    sudo dkms remove -m ${tool} -v 1.0 --all 2>/dev/null || true
+    sudo dkms remove -m ${tool} -v 1.0 --all || true
     sudo rm -rf /usr/src/${tool}-1.0
 
     # Fetch package
@@ -30,6 +31,23 @@ for i in `ls -d pv-linux-drivers/openxt-*`; do
     sudo dkms mkrpm -m ${tool} -v 1.0 -k ${KERNEL_VERSION}
     cp /var/lib/dkms/${tool}/1.0/rpm/* repo/RPMS
 done
+
+# Build syncxt
+rm -rf openxt
+git clone https://github.com/OpenXT/openxt.git
+cd openxt
+OPENXT_DIR=`pwd`
+mkdir src
+cd src
+git clone https://github.com/OpenXT/sync-database.git
+git clone https://github.com/OpenXT/sync-cli.git
+git clone https://github.com/OpenXT/sync-server.git
+git clone https://github.com/OpenXT/sync-ui-helper.git
+cd ..
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/u01/app/oracle/product/11.2.0/xe/lib"
+./do_sync_xt.sh ${OPENXT_DIR}
+cd ..
+cp openxt/out/* repo/RPMS
 
 # Create the repo
 createrepo repo
