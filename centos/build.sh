@@ -13,7 +13,7 @@ if [ ! -e /root/oracled ]; then
         echo "  example: scp -i ssh-key/openxt oracle-xe-11.2.0-1.0.x86_64.rpm.zip build@192.168.${IP_C}.103:/tmp"
         sleep 60
     done
-    unzip /root/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
+    unzip /tmp/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
     rpm -ivh Disk1/oracle-xe-11.2.0-1.0.x86_64.rpm
     /etc/init.d/oracle-xe configure <<EOF
 
