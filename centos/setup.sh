@@ -9,7 +9,7 @@ passwd -d root
 yum -y install centos-release-xen
 yum -y groupinstall "Development tools"
 rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-yum -y install rpm-build createrepo which sudo git which wget gcc make kernel-devel tar dkms libaio bc iproute2 net-tools
+yum -y install rpm-build createrepo which sudo git which wget gcc make kernel-devel tar dkms libaio bc iproute2 net-tools python-devel python-argparse python-pip
 
 # Setup symlinks to make dkms happy
 for kernelpath in `ls -d /usr/src/kernels/*`; do

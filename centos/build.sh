@@ -22,6 +22,7 @@ xenroot
 xenroot
 
 EOF
+    sudo pip install cx_Oracle
     touch ~/oracled
 fi
 
