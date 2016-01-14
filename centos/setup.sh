@@ -14,7 +14,7 @@ yum -y install rpm-build createrepo which sudo git which wget gcc make kernel-de
 # Setup symlinks to make dkms happy
 for kernelpath in `ls /usr/src/kernels/*`; do
     kernel=`basename $kernelpath`
-    mkdir -p /lib/modules/${kernel}
+    mkdir -p /lib/modules/virt
     [ -e /lib/modules/virt/build ] || ln -s ${kernelpath} /lib/modules/virt/build
     [ -e /lib/modules/virt/source ] || ln -s ${kernelpath} /lib/modules/virt/source
 done
