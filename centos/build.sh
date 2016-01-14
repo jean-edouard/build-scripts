@@ -22,7 +22,8 @@ xenroot
 xenroot
 
 EOF
-    sudo pip install cx_Oracle
+    . /u01/app/oracle/product/11.2.0/xe/bin/oracle_env.sh
+    sudo -E pip install cx_Oracle
     touch ~/oracled
 fi
 
