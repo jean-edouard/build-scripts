@@ -12,7 +12,7 @@ rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum -y install rpm-build createrepo which sudo git which wget gcc make kernel-devel tar dkms libaio bc iproute2 net-tools
 
 # Setup symlinks to make dkms happy
-for kernelpath in `ls /usr/src/kernels/*`; do
+for kernelpath in `ls -d /usr/src/kernels/*`; do
     kernel=`basename $kernelpath`
     mkdir -p /lib/modules/virt
     [ -e /lib/modules/virt/build ] || ln -s ${kernelpath} /lib/modules/virt/build
