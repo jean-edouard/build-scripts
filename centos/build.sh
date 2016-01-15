@@ -33,7 +33,7 @@ cd $BUILD_DIR
 KERNEL_VERSION=`ls /lib/modules | tail -1`
 
 rm -rf pv-linux-drivers
-git clone -b sbuild2 https://github.com/jean-edouard/pv-linux-drivers.git
+git clone -b lxc https://github.com/jean-edouard/pv-linux-drivers.git
 
 # Build the tools
 for i in `ls -d pv-linux-drivers/openxt-*`; do

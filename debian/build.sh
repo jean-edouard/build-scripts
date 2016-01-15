@@ -9,7 +9,7 @@ IP_C=%IP_C%
 # Build
 mkdir $BUILD_DIR
 cd $BUILD_DIR
-git clone -b sbuild https://github.com/jean-edouard/pv-linux-drivers.git
+git clone -b lxc https://github.com/jean-edouard/pv-linux-drivers.git
 mkdir all
 cd all
 for tool in ../pv-linux-drivers/openxt-*; do
